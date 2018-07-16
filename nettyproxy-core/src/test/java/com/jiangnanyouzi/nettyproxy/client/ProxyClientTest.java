@@ -12,7 +12,7 @@ public class ProxyClientTest {
     @Test
     public void connectNewRemoteServer() throws Exception {
 
-        String uri = "http://gss0.bdstatic.com/5foIcy0a2gI2n2jgoY3K/static/fisp_static/news/js/jquery-1.8.3.min_a6ffa58.js";
+        String uri = "/5foIcy0a2gI2n2jgoY3K/static/fisp_static/news/js/jquery-1.8.3.min_a6ffa58.js";
         ProxyConstant.clientListenerList.add(new DomainRequestListener(".*"));
         FullHttpRequest fullHttpRequest =
                 new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
@@ -28,7 +28,7 @@ public class ProxyClientTest {
         ProxyClient proxyClient = new ProxyClient();
 
         proxyClient.setClientRequestInfo(clientRequestInfo);
-        proxyClient.connectNewRemoteServer(clientRequestInfo);
+        proxyClient.connectNewRemoteServer();
 
         Thread.sleep(5 * 1000);
     }

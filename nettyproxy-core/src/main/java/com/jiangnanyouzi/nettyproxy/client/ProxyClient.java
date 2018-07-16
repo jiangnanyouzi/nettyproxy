@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ProxyClient {
-    private Logger logger = LoggerFactory.getLogger(ProxyClient.class);
+    private Logger logger = LoggerFactory.getLogger(getClass());
     private ChannelFuture channelFuture;
     private ClientRequestInfo clientRequestInfo;
     private boolean alreadySendData = false;
@@ -33,17 +33,17 @@ public class ProxyClient {
 
         setClientRequestInfo(clientRequestInfo);
 
-        beforeRequest(clientRequestInfo);
+        beforeRequest();
 
-        if (!beforeConnect(clientRequestInfo)) {
+        if (!beforeConnect()) {
             return;
         }
 
-        connectNewRemoteServer(clientRequestInfo);
+        connectNewRemoteServer();
 
     }
 
-    public void connectNewRemoteServer(ClientRequestInfo clientRequestInfo) {
+    public void connectNewRemoteServer() {
 
         logger.info("client to server,start...........");
 
@@ -69,7 +69,7 @@ public class ProxyClient {
 
     }
 
-    private boolean beforeConnect(ClientRequestInfo requestInfo) {
+    private boolean beforeConnect() {
 
         if (channelFuture != null && !channelFuture.channel().isOpen()) {
             channelFuture.channel().close();
@@ -79,10 +79,10 @@ public class ProxyClient {
 
         if (channelFuture != null) {
             if (!alreadySendData || !channelFuture.channel().isOpen()) {
-                queue.add(requestInfo.getMsg());
+                queue.add(clientRequestInfo.getMsg());
                 return false;
             }
-            channelFuture.channel().writeAndFlush(requestInfo.getMsg());
+            channelFuture.channel().writeAndFlush(clientRequestInfo.getMsg());
             return false;
         }
         return true;
@@ -96,7 +96,7 @@ public class ProxyClient {
         return clientRequestInfo;
     }
 
-    public void beforeRequest(ClientRequestInfo clientRequestInfo) {
+    public void beforeRequest() {
 
         for (ClientListener clientListener : ProxyConstant.clientListenerList) {
             if (clientListener.shouldReserved(clientRequestInfo)) {

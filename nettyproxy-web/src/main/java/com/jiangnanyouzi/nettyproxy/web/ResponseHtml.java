@@ -141,7 +141,7 @@ public class ResponseHtml {
         ClientRequestInfo clientRequestInfo = new ClientRequestInfo.Builder().host(host).port(port).https(port == 443).reserve(true).msg(fullHttpRequest).build();
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.setClientRequestInfo(clientRequestInfo);
-        proxyClient.connectNewRemoteServer(clientRequestInfo);
+        proxyClient.connectNewRemoteServer();
 
         //save container
         return saveAndReturnHtml(fullHttpRequest);
