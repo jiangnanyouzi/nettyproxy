@@ -1,0 +1,53 @@
+<form class="layui-form" action="">
+
+    <div class="layui-tab layui-tab-brief">
+        <ul class="layui-tab-title">
+            <li class="layui-this">Header</li>
+            <li>Body</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <table class="layui-table" style="table-layout:fixed" id="request">
+                    <colgroup>
+                        <col width="120">
+                        <col width="150">
+                        <col maxWidth="800">
+                    </colgroup>
+                    <tbody>
+                    {requestHeader}
+                    <tr>
+                        <td>
+                            <div class="layui-row">
+                                <span class="layui-badge layui-bg-blue addrow">增加</span>
+                                <span class="layui-badge removerow">删除</span>
+                            </div>
+                        </td>
+                        <td>
+                            <select name="names[]">
+                                {foreach}
+                                <option value="{value}" {selected}>阅读</option>
+                                {/foreach}
+                            </select>
+                        </td>
+                        <td style="word-break:break-all">
+                            <input type="text" name="values[]" autocomplete="off" class="layui-input" value="{value}">
+                        </td>
+                    </tr>
+                    {/requestHeader}
+                    <tbody>
+                </table>
+            </div>
+            <div class="layui-tab-item">
+                <div class="layui-form-item layui-form-text">
+                    <div class="layui-input-inline">
+                        <textarea placeholder="请输入内容" rows="20" cols="200"
+                                  class="layui-textarea">{bodyContent}</textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</form>

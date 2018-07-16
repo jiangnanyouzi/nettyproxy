@@ -17,13 +17,16 @@
             <table class="layui-table layui-form">
                 <colgroup>
                     <col width="20">
-                    <col width="120">
+                    <col width="150">
                     <col maxWidth="800">
                 </colgroup>
                 <thead>
                 <tr>
-                    <th><input class="check_all" id="check_all" type="checkbox" lay-skin="primary" lay-filter="allChoose"/></th>
-                    <th><button id="delete" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-danger">删除</button></th>
+                    <th><input class="check_all" id="check_all" type="checkbox" lay-skin="primary"
+                               lay-filter="allChoose"/></th>
+                    <th>
+                        <button id="delete" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-danger">删除</button>
+                    </th>
                     <th>url</th>
                 </tr>
                 </thead>
@@ -35,6 +38,7 @@
                         <div class="layui-row">
                             <span class="layui-badge layui-bg-blue retry" data-id='{id}'>重发</span>
                             <span class="layui-badge layui-bg-black blacklist" data-id='{id}'>拉黑</span>
+                            <span class="layui-badge editrequest" data-id='{id}'>编辑</span>
                         </div>
                     </td>
                     <td data-id='{id}' class="btnrequest" style='word-break:break-all'>{url}</td>
@@ -43,9 +47,12 @@
                 </tbody>
             </table>
         </div>
-        <div id="contentModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+        <div id="contentModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog"
+             aria-labelledby="myLargeModalLabel">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content" id='content'>
+
+
 
                 </div>
             </div>
@@ -57,16 +64,16 @@
             var form;
             var element;
             var layer;
-            layui.use(['element', 'layer','form','code'], function () {
+            layui.use(['element', 'layer', 'form', 'code'], function () {
                 layui.code({
                     encode: true
                 });
-                 element = layui.element;
-                 layer = layui.layer;
+                element = layui.element;
+                layer = layui.layer;
                 form = layui.form;
-                form.on('checkbox(allChoose)', function(data){
+                form.on('checkbox(allChoose)', function (data) {
                     var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
-                    child.each(function(index, item){
+                    child.each(function (index, item) {
                         item.checked = data.elem.checked;
                     });
                     form.render('checkbox');
@@ -91,6 +98,7 @@
                     });
                 return ret;
             };
+
             function retryRequest(id) {
                 var url = 'http://127.0.0.1:{port}/retry/request/' + id;
                 $.ajax(
@@ -116,9 +124,9 @@
                         async: false,
                         dataType: "json",
                         success: function (ret) {
-                            if (ret.status==1){
+                            if (ret.status == 1) {
                                 layer.msg('操作成功');
-                            }else {
+                            } else {
                                 layer.msg('操作失败');
                             }
 
@@ -132,8 +140,8 @@
                 console.log(id);
                 var ret = getRequestContent(id);
                 console.log(ret);
-                $('td').css('background-color',"");
-                $(this).css('background-color','#dff0d8');
+                $('td').css('background-color', "");
+                $(this).css('background-color', '#dff0d8');
                 layer.msg('请求成功');
             });
 
@@ -165,7 +173,7 @@
                     });
             });
 
-            var table=$("table");
+            var table = $("table");
             table.on("click", "span.retry", function () {
                 console.log("click.......");
                 var id = $(this).attr("data-id");
@@ -177,6 +185,23 @@
                 var id = $(this).attr("data-id");
                 console.log(id);
                 addBlackRequest(id);
+            });
+            table.on("click", "span.editrequest", function () {
+                console.log("click.......");
+                var id = $(this).attr("data-id");
+                $('#contentModal').modal('show');
+            });
+            table.on("click", "span.removerow", function () {
+                console.log("click.......");
+                $(this).parents("tr").empty();
+                layer.msg('删除成功');
+            });
+            table.on("click", "span.addrow", function () {
+                var row=$(this).parents("tr");
+                console.log(row);
+                $("#request").append(row.clone());
+                form.render('select');
+                layer.msg('删除成功');
             });
         });
     </script>
