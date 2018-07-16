@@ -70,7 +70,7 @@ public class DomainRequestListener extends AbstractClientListener {
         logger.info("ACCEPT_CHARSET {}", fullHttpResponse.headers().get(HttpHeaderNames.ACCEPT_CHARSET));
         logger.info("CONTENT_ENCODING {}", fullHttpResponse.headers().get(HttpHeaderNames.CONTENT_ENCODING));
 
-        if (!("text/html".equalsIgnoreCase(mimeType)) && !("application/json".equalsIgnoreCase(mimeType))) {
+        if (mimeType.contains("image")) {
             return;
         }
 
