@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>request show all</title>
+    <meta name="robots" content="noindex"/>
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="http://cdn.90so.net/layui/2.3.0/layui.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.90so.net/layui/2.3.0/css/layui.css" media="all">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" media="all">
+</head>
+<body class="skin-blue sidebar-collapse sidebar-mini">
+<div class='container-fluid'>
+    <div class="row">
+        <div class="col-md-12" style="overflow-y:auto; overflow-x:auto; height:950px;">
+            <table class="layui-table layui-form">
+                <colgroup>
+                    <col width="20">
+                    <col width="120">
+                    <col maxWidth="800">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th><input class="check_all" id="check_all" type="checkbox" lay-skin="primary" lay-filter="allChoose"/></th>
+                    <th><button id="delete" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-danger">删除</button></th>
+                    <th>url</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach}
+                <tr id='request_{id}'>
+                    <td><input type="checkbox" name="id[]" value="{id}" lay-skin="primary"/></td>
+                    <td>
+                        <div class="layui-row">
+                            <span class="layui-badge layui-bg-blue retry" data-id='{id}'>重发</span>
+                            <span class="layui-badge layui-bg-black blacklist" data-id='{id}'>拉黑</span>
+                        </div>
+                    </td>
+                    <td data-id='{id}' class="btnrequest" style='word-break:break-all'>{url}</td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+        <div id="contentModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content" id='content'>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="http://cdn.90so.net/layui/2.3.0/layui.js" charset="utf-8"></script>
+    <script>
+        $(function () {
+            var form;
+            var element;
+            var layer;
+            layui.use(['element', 'layer','form','code'], function () {
+                layui.code({
+                    encode: true
+                });
+                 element = layui.element;
+                 layer = layui.layer;
+                form = layui.form;
+                form.on('checkbox(allChoose)', function(data){
+                    var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+                    child.each(function(index, item){
+                        item.checked = data.elem.checked;
+                    });
+                    form.render('checkbox');
+                });
+            });
+
+            function getRequestContent(id) {
+                var ret = '';
+                var url = 'http://127.0.0.1:{port}/get/request/' + id;
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'get',
+                        async: false,
+                        dataType: "html",
+                        success: function (dataval) {
+                            ret = dataval;
+                            $('#content').empty();
+                            $('#content').append(ret);
+                            $('#contentModal').modal('show');
+                        }
+                    });
+                return ret;
+            };
+            function retryRequest(id) {
+                var url = 'http://127.0.0.1:{port}/retry/request/' + id;
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'get',
+                        async: false,
+                        dataType: "html",
+                        success: function (ret) {
+                            $('tbody').append(ret);
+                            layer.msg('操作成功');
+                            form.render('checkbox');
+                        }
+                    });
+            };
+
+            function addBlackRequest(id) {
+                var url = 'http://127.0.0.1:{port}/black/request/' + id;
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'get',
+                        async: false,
+                        dataType: "json",
+                        success: function (ret) {
+                            if (ret.status==1){
+                                layer.msg('操作成功');
+                            }else {
+                                layer.msg('操作失败');
+                            }
+
+                        }
+                    });
+            };
+
+            $("tbody").on("click", "td.btnrequest", function () {
+                console.log("click.......");
+                var id = $(this).attr("data-id");
+                console.log(id);
+                var ret = getRequestContent(id);
+                console.log(ret);
+                $('td').css('background-color',"");
+                $(this).css('background-color','#dff0d8');
+                layer.msg('请求成功');
+            });
+
+            $('#check_all').click(function () {
+                var cks = $('input:checkbox');
+                for (var i = 0; i < cks.length; i++) {
+                    cks.get(i).checked = !cks.get(i).checked;
+                }
+            });
+            $('#delete').click(function () {
+                var allVals = [];
+                $("input:checkbox:checked").each(function () {
+                    var id = $(this).val();
+                    $('#request_' + id).remove();
+                    if (id > 0) {
+                        allVals.push(id);
+                    }
+                });
+                var url = 'http://127.0.0.1:{port}/delete/request';
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'post',
+                        data: {id: allVals},
+                        dataType: "json",
+                        success: function (ret) {
+                            layer.msg('删除成功');
+                        }
+                    });
+            });
+
+            var table=$("table");
+            table.on("click", "span.retry", function () {
+                console.log("click.......");
+                var id = $(this).attr("data-id");
+                console.log(id);
+                retryRequest(id);
+            });
+            table.on("click", "span.blacklist", function () {
+                console.log("click.......");
+                var id = $(this).attr("data-id");
+                console.log(id);
+                addBlackRequest(id);
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">Request</li>
+        <li>Response</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-card">
+                <h4 class="alert alert-success" role="alert" style='word-break:break-all'>{url}</h4>
+                <div class="layui-card-body">
+                    <table class="layui-table" style="table-layout:fixed">
+                        <tbody>
+                        {requestHeader}
+                        <tr>
+                            <td>{name}</td>
+                            <td style="word-break:break-all">{value}</td>
+                        </tr>
+                        {/requestHeader}
+                        <tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body">
+                    {request}
+                    <div class="alert alert-success" role="alert">{httpMethod}</div>
+                    <table class="layui-table" style="table-layout:fixed">
+                        <tbody>
+                        {requestParamter}
+                        <tr>
+                            <td style='word-break:break-all'>{name}</td>
+                            <td style='word-break:break-all'>{value}</td>
+                        </tr>
+                        {/requestParamter}
+                        <tbody>
+                    </table>
+                    {/request}
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+
+            <div class="layui-card">
+                <h4 class="alert alert-success" role="alert" style='word-break:break-all'>{url}</h4>
+                <div class="layui-card-body">
+                    <table class="layui-table" style="table-layout:fixed">
+                        <tbody>
+
+                        {responseHeader}
+                        <tr>
+                            <td>{name}</td>
+                            <td style="word-break:break-all">{value}</td>
+                        </tr>
+                        {/responseHeader}
+
+                        <tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body">
+                    {responseTxt}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
