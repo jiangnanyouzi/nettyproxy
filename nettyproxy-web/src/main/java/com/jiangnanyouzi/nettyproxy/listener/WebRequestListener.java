@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 
@@ -58,6 +60,10 @@ public class WebRequestListener implements ClientListener {
                 ResponseInfo responseInfo = new ResponseInfo.Builder().id(id).https(requestInfo.isHttps())
                         .fullHttpRequest((FullHttpRequest) requestInfo.getMsg()).build();
                 WebProxyConstant.responseInfoMap.put(id, responseInfo);
+                Map<String, Object> extras = new HashMap<>();
+                extras.put(String.valueOf(id), responseInfo);
+                requestInfo.setExtras(extras);
+                ReferenceCountUtil.retain(requestInfo.getMsg());
                 ReferenceCountUtil.retain(requestInfo.getMsg());
                 return true;
             }
@@ -66,14 +72,6 @@ public class WebRequestListener implements ClientListener {
         return false;
     }
 
-
-    public void processHttpResponse(HttpRequest httpRequest, FullHttpResponse fullHttpResponse) {
-
-        WebProxyConstant.container.put((FullHttpRequest) httpRequest, fullHttpResponse);
-        ReferenceCountUtil.retain(fullHttpResponse);
-        ReferenceCountUtil.retain(httpRequest);
-
-    }
 
     @Override
     public boolean shouldReserved(ClientRequestInfo requestInfo) {
@@ -86,7 +84,13 @@ public class WebRequestListener implements ClientListener {
     @Override
     public void process(ClientRequestInfo requestInfo, FullHttpResponse fullHttpResponse) {
 
-        processHttpResponse((FullHttpRequest) requestInfo.getMsg(), fullHttpResponse);
+        for (String s : requestInfo.getExtras().keySet()) {
+            WebProxyConstant.responseInfoMap
+                    .get(Integer.valueOf(s))
+                    .setFullHttpResponse(fullHttpResponse);
+        }
+        ReferenceCountUtil.retain(fullHttpResponse);
+
     }
 
 

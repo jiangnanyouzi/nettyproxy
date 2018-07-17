@@ -18,8 +18,6 @@ public abstract class WebProxyConstant {
 
     public static Map<Integer, ResponseInfo> responseInfoMap = new HashMap<>();
 
-    public static Map<FullHttpRequest, FullHttpResponse> container = new HashMap<>();
-
     public static Set<String> blackDomains = new TreeSet<>();
 
 }

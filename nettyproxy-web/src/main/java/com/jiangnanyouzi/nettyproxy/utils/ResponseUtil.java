@@ -45,15 +45,7 @@ public class ResponseUtil extends ResponseUtils {
         if (!WebProxyConstant.responseInfoMap.containsKey(id)) {
             return null;
         }
-        ResponseInfo targetResponseInfo = WebProxyConstant.responseInfoMap.get(id);
-        FullHttpRequest fullHttpRequest = targetResponseInfo.getFullHttpRequest();
-        FullHttpResponse fullHttpResponse = targetResponseInfo.getFullHttpResponse();
-        if (fullHttpResponse == null) {
-            fullHttpResponse = WebProxyConstant.container.get(fullHttpRequest);
-            targetResponseInfo.setFullHttpResponse(fullHttpResponse);
-            WebProxyConstant.container.remove(fullHttpRequest);
-        }
-        return targetResponseInfo;
+        return WebProxyConstant.responseInfoMap.get(id);
     }
 
     public static String toUpperCase(String word) {

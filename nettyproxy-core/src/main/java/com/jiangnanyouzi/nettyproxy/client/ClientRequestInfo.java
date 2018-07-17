@@ -2,6 +2,8 @@ package com.jiangnanyouzi.nettyproxy.client;
 
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Map;
+
 /**
  * Created by jiangnan on 2018/7/2.
  */
@@ -13,6 +15,7 @@ public class ClientRequestInfo {
     private Object msg;
     private boolean https;
     private boolean reserve = false;
+    private Map<String, Object> extras;
 
     public ClientRequestInfo() {
 
@@ -25,6 +28,7 @@ public class ClientRequestInfo {
         setMsg(builder.msg);
         setHttps(builder.https);
         setReserve(builder.reserve);
+        setExtras(builder.extras);
     }
 
 
@@ -76,6 +80,14 @@ public class ClientRequestInfo {
         this.reserve = reserve;
     }
 
+    public Map<String, Object> getExtras() {
+        return extras;
+    }
+
+    public void setExtras(Map<String, Object> extras) {
+        this.extras = extras;
+    }
+
 
     public static final class Builder {
         private ChannelHandlerContext channelHandlerContext;
@@ -84,6 +96,7 @@ public class ClientRequestInfo {
         private Object msg;
         private boolean https;
         private boolean reserve;
+        private Map<String, Object> extras;
 
         public Builder() {
         }
@@ -115,6 +128,11 @@ public class ClientRequestInfo {
 
         public Builder reserve(boolean val) {
             reserve = val;
+            return this;
+        }
+
+        public Builder extras(Map<String, Object> val) {
+            extras = val;
             return this;
         }
 

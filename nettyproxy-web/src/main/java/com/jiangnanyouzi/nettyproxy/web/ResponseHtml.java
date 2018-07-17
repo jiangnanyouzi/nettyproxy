@@ -6,13 +6,17 @@ import com.jiangnanyouzi.nettyproxy.config.WebProxyConstant;
 import com.jiangnanyouzi.nettyproxy.utils.HttpRequestUtils;
 import com.jiangnanyouzi.nettyproxy.utils.HttpUtils;
 import com.jiangnanyouzi.nettyproxy.utils.ResponseUtil;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -78,9 +82,7 @@ public class ResponseHtml {
             String host = HttpUtils.getHost(hostTxt);
             WebProxyConstant.blackDomains.add(".*" + host + ".*");
             WebProxyConstant.responseInfoMap.remove(id);
-            WebProxyConstant.container.remove(responseInfo.getFullHttpRequest());
-            ReferenceCountUtil.release(responseInfo.getFullHttpRequest());
-            ReferenceCountUtil.release(responseInfo.getFullHttpResponse());
+            releaseResponseInfo(responseInfo);
             return "{\"status\":1}";
         }
         return "{\"status\":0}";
@@ -93,7 +95,8 @@ public class ResponseHtml {
         if (paramters.containsKey("id[]")) {
             List<String> idList = paramters.get("id[]");
             for (String s : idList) {
-                ReferenceCountUtil.release(WebProxyConstant.responseInfoMap.get(Integer.parseInt(s)));
+                ResponseInfo responseInfo = WebProxyConstant.responseInfoMap.get(Integer.parseInt(s));
+                releaseResponseInfo(responseInfo);
                 WebProxyConstant.responseInfoMap.remove(Integer.parseInt(s));
             }
         }
@@ -107,34 +110,48 @@ public class ResponseHtml {
         if (responseInfo == null) {
             return "error";
         }
-        FullHttpRequest fullHttpRequest = responseInfo.getFullHttpRequest();
-        String hostTxt = fullHttpRequest.headers().get(HttpHeaderNames.HOST);
+        FullHttpRequest sources = responseInfo.getFullHttpRequest();
+        String hostTxt = sources.headers().get(HttpHeaderNames.HOST);
         String host = HttpUtils.getHost(hostTxt);
         int port = responseInfo.isHttps() ? 443 : 80;
-        logger.info("Retry Request,id {} host {} port {}", id, host, port);
-        ReferenceCountUtil.retain(fullHttpRequest);
-        ReferenceCountUtil.retain(fullHttpRequest);
 
+        logger.info("Retry Request,id {} host {} port {}", id, host, port);
+
+        FullHttpRequest fullHttpRequest = sources.copy();
         //send request
-        ClientRequestInfo clientRequestInfo = new ClientRequestInfo.Builder().host(host).port(port).https(responseInfo.isHttps()).reserve(true).msg(fullHttpRequest).build();
+        ClientRequestInfo.Builder builder = new ClientRequestInfo.Builder().host(host).port(port).reserve(true);
+        ClientRequestInfo clientRequestInfo = builder.https(responseInfo.isHttps()).msg(fullHttpRequest.copy()).build();
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.setClientRequestInfo(clientRequestInfo);
         proxyClient.connectNewRemoteServer();
 
         //save container
-        return saveAndReturnHtml(fullHttpRequest, responseInfo.isHttps());
+        return saveAndReturnHtml(fullHttpRequest, clientRequestInfo);
     }
 
-    public String saveAndReturnHtml(FullHttpRequest fullHttpRequest, boolean https) {
+    public String saveAndReturnHtml(FullHttpRequest fullHttpRequest, ClientRequestInfo clientRequestInfo) {
 
         int incrementid = WebProxyConstant.atomicInteger.incrementAndGet();
-        ResponseInfo newResponseInfo = new ResponseInfo.Builder().id(incrementid).https(https)
+        ResponseInfo newResponseInfo = new ResponseInfo.Builder().id(incrementid).https(clientRequestInfo.isHttps())
                 .fullHttpRequest(fullHttpRequest).build();
+        Map<String, Object> extras = new HashMap<>();
+        extras.put(String.valueOf(incrementid), newResponseInfo);
+        clientRequestInfo.setExtras(extras);
         WebProxyConstant.responseInfoMap.put(incrementid, newResponseInfo);
-        String url = ResponseUtil.fixUrl(fullHttpRequest, https);
+        String url = ResponseUtil.fixUrl(fullHttpRequest, clientRequestInfo.isHttps());
         return DefaultRequestHtml.foreachHtml.replaceAll("\\{id\\}", String.valueOf(incrementid))
                 .replaceAll("\\{url\\}", url);
     }
 
+    private void releaseResponseInfo(ResponseInfo responseInfo) {
+        FullHttpRequest fullHttpRequest = responseInfo.getFullHttpRequest();
+        FullHttpResponse fullHttpResponse = responseInfo.getFullHttpResponse();
+        while (ReferenceCountUtil.refCnt(fullHttpRequest) > 0) {
+            ReferenceCountUtil.release(fullHttpRequest);
+        }
+        while (ReferenceCountUtil.refCnt(fullHttpResponse) > 0) {
+            ReferenceCountUtil.release(fullHttpResponse);
+        }
+    }
 
 }

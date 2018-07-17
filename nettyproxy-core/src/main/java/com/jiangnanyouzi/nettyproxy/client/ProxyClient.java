@@ -132,7 +132,9 @@ public class ProxyClient {
                 ReferenceCountUtil.release(o);
             }
             queue.clear();
-            ReferenceCountUtil.release(clientRequestInfo.getMsg());
+            if (ReferenceCountUtil.refCnt(clientRequestInfo.getMsg()) > 0) {
+                ReferenceCountUtil.release(clientRequestInfo.getMsg());
+            }
             clientRequestInfo.getChannelHandlerContext().channel().close();
             future.channel().close();
         }

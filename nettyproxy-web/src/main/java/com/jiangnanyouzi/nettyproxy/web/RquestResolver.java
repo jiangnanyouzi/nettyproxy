@@ -95,7 +95,7 @@ public class RquestResolver {
         FullHttpRequest fullHttpRequest = generateHttpRequest(paramters);
         boolean https = Boolean.valueOf(paramters.get("https").get(0));
 
-        String returnHtml = retryRequest(fullHttpRequest, https);
+        String returnHtml = retryRequest(fullHttpRequest.copy(), https);
         return "{\"status\":1,\"returnHtml\":\"" + StringEscapeUtils.escapeJson(returnHtml) + "\"}";
     }
 
@@ -105,15 +105,13 @@ public class RquestResolver {
         String host = HttpUtils.getHost(hostTxt);
         int port = https ? 443 : 80;
         logger.info("Retry Request, host {} port {}", host, port);
-        ReferenceCountUtil.retain(fullHttpRequest);
-        ReferenceCountUtil.retain(fullHttpRequest);
-        //ReferenceCountUtil.retain(fullHttpRequest);
         //send request
-        ClientRequestInfo clientRequestInfo = new ClientRequestInfo.Builder().host(host).port(port).https(https).reserve(true).msg(fullHttpRequest).build();
+        ClientRequestInfo.Builder builder = new ClientRequestInfo.Builder().host(host).port(port).reserve(true);
+        ClientRequestInfo clientRequestInfo = builder.https(https).msg(fullHttpRequest.copy()).build();
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.setClientRequestInfo(clientRequestInfo);
         proxyClient.connectNewRemoteServer();
-        return new ResponseHtml().saveAndReturnHtml(fullHttpRequest, https);
+        return new ResponseHtml().saveAndReturnHtml(fullHttpRequest, clientRequestInfo);
     }
 
     private FullHttpRequest generateHttpRequest(Map<String, List<String>> paramters) {
