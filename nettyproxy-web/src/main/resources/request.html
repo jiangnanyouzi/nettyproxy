@@ -1,4 +1,4 @@
-<form class="layui-form" action="">
+<form class="layui-form" action="" id="requestForm">
 
     <div class="layui-tab layui-tab-brief">
         <ul class="layui-tab-title">
@@ -7,6 +7,9 @@
         </ul>
         <div class="layui-tab-content">
             <div class="layui-tab-item layui-show">
+                <input type="text" name="uri" autocomplete="off" class="layui-input" value="{uri}">
+                <input type="hidden" name="https" autocomplete="off" class="layui-input" value="{https}">
+                <input type="hidden" name="httpMethod" autocomplete="off" class="layui-input" value="{httpMethod}">
                 <table class="layui-table" style="table-layout:fixed" id="request">
                     <colgroup>
                         <col width="120">
@@ -25,7 +28,7 @@
                         <td>
                             <select name="names[]">
                                 {foreach}
-                                <option value="{value}" {selected}>阅读</option>
+                                <option value="{value}" {selected}>{name}</option>
                                 {/foreach}
                             </select>
                         </td>
@@ -40,13 +43,15 @@
             <div class="layui-tab-item">
                 <div class="layui-form-item layui-form-text">
                     <div class="layui-input-inline">
-                        <textarea placeholder="请输入内容" rows="20" cols="200"
+                        {body}
+                        <textarea name="body" placeholder="请输入内容" rows="20" cols="200"
                                   class="layui-textarea">{bodyContent}</textarea>
+                        {/body}
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-primary" id="save">重发</button>
             </div>
         </div>
     </div>

@@ -41,23 +41,24 @@ public class WebRequestListener implements ClientListener {
     }
 
 
-    public boolean shouldReservedHttpRequest(HttpRequest httpRequest) {
+    public boolean shouldReservedHttpRequest(ClientRequestInfo requestInfo) {
 
+        String host = ((FullHttpRequest) requestInfo.getMsg()).headers().get(HttpHeaderNames.HOST);
         for (String domain : WebProxyConstant.blackDomains) {
-            if (Pattern.matches(domain, httpRequest.headers().get(HttpHeaderNames.HOST))) {
-                logger.info("{} is black", httpRequest.headers().get(HttpHeaderNames.HOST));
+            if (Pattern.matches(domain, host)) {
+                logger.info("{} is black", host);
                 return false;
             }
         }
 
         for (String domain : domains) {
-            logger.info("{} {}", httpRequest.headers().get(HttpHeaderNames.HOST), Pattern.matches(domain, httpRequest.headers().get(HttpHeaderNames.HOST)));
-            if (Pattern.matches(domain, httpRequest.headers().get(HttpHeaderNames.HOST))) {
+            logger.info("{} {}", host, Pattern.matches(domain, host));
+            if (Pattern.matches(domain, host)) {
                 int id = WebProxyConstant.atomicInteger.incrementAndGet();
-                ResponseInfo responseInfo = new ResponseInfo.Builder().id(id)
-                        .fullHttpRequest((FullHttpRequest) httpRequest).build();
+                ResponseInfo responseInfo = new ResponseInfo.Builder().id(id).https(requestInfo.isHttps())
+                        .fullHttpRequest((FullHttpRequest) requestInfo.getMsg()).build();
                 WebProxyConstant.responseInfoMap.put(id, responseInfo);
-                ReferenceCountUtil.retain(httpRequest);
+                ReferenceCountUtil.retain(requestInfo.getMsg());
                 return true;
             }
         }
@@ -78,7 +79,7 @@ public class WebRequestListener implements ClientListener {
     public boolean shouldReserved(ClientRequestInfo requestInfo) {
 
 
-        return checkLocalRequest(requestInfo.getHost(), requestInfo.getPort(), (FullHttpRequest) requestInfo.getMsg(), requestInfo.getChannelHandlerContext());
+        return checkLocalRequest(requestInfo);
 
     }
 
@@ -89,19 +90,22 @@ public class WebRequestListener implements ClientListener {
     }
 
 
-    private boolean checkLocalRequest(String host, int port, FullHttpRequest request, ChannelHandlerContext ctx) {
+    private boolean checkLocalRequest(ClientRequestInfo requestInfo) {
 
-        if (("localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host)) && port == ProxyConstant.PORT) {
-            String html = new ResponseHtml().buildHtml(request);
+        if (("localhost".equalsIgnoreCase(requestInfo.getHost()) ||
+                "127.0.0.1".equals(requestInfo.getHost())) &&
+                requestInfo.getPort() == ProxyConstant.PORT) {
+            String html = new ResponseHtml().buildHtml((FullHttpRequest) requestInfo.getMsg());
             HttpContent httpContent = new DefaultLastHttpContent();
             httpContent.content().writeBytes(html.getBytes());
+            ChannelHandlerContext ctx = requestInfo.getChannelHandlerContext();
             ctx.writeAndFlush(ResponseUtils.getHtmlHttpResponse(html));
             ctx.writeAndFlush(httpContent);
             ctx.close();
             return false;
         }
 
-        return shouldReservedHttpRequest(request);
+        return shouldReservedHttpRequest(requestInfo);
     }
 
 }

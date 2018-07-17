@@ -30,7 +30,7 @@
                     <th>url</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="requestlist">
                 {foreach}
                 <tr id='request_{id}'>
                     <td><input type="checkbox" name="id[]" value="{id}" lay-skin="primary"/></td>
@@ -108,7 +108,11 @@
                         async: false,
                         dataType: "html",
                         success: function (ret) {
-                            $('tbody').append(ret);
+                            if (ret=="error"){
+                                layer.msg('操作失败');
+                                return;
+                            }
+                            $('#requestlist').append(ret);
                             layer.msg('操作成功');
                             form.render('checkbox');
                         }
@@ -189,19 +193,54 @@
             table.on("click", "span.editrequest", function () {
                 console.log("click.......");
                 var id = $(this).attr("data-id");
-                $('#contentModal').modal('show');
+                var url = 'http://127.0.0.1:{port}/edit/request/' + id;
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'get',
+                        dataType: "html",
+                        success: function (ret) {
+                            $('#content').empty();
+                            $('#content').append(ret);
+                            $('#contentModal').modal('show');
+                            form.render('select');
+                        }
+                    });
             });
-            table.on("click", "span.removerow", function () {
+            var contentObject = $("#content");
+            contentObject.on("click", "span.removerow", function () {
                 console.log("click.......");
                 $(this).parents("tr").empty();
                 layer.msg('删除成功');
             });
-            table.on("click", "span.addrow", function () {
+            contentObject.on("click", "span.addrow", function () {
                 var row=$(this).parents("tr");
                 console.log(row);
                 $("#request").append(row.clone());
                 form.render('select');
                 layer.msg('删除成功');
+            });
+            contentObject.on("click", "button#save", function () {
+                var formData=$("#requestForm").serialize();
+                //console.log(formData);
+                var url = 'http://127.0.0.1:{port}/post/request/';
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'post',
+                        data: formData,
+                        dataType: "json",
+                        success: function (ret) {
+                            if (ret.status == 1) {
+                                $('#requestlist').append(ret.returnHtml);
+                                layer.msg('操作成功');
+                                form.render('checkbox');
+                            } else {
+                                layer.msg('操作失败');
+                            }
+                        }
+                    });
+                $('#contentModal').modal('hide');
             });
         });
     </script>

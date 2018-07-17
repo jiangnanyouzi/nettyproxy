@@ -13,6 +13,7 @@ public class ResponseInfo {
     private FullHttpResponse fullHttpResponse;
     private Object request;
     private Object response;
+    private boolean https;
 
     public ResponseInfo() {
 
@@ -24,7 +25,9 @@ public class ResponseInfo {
         setFullHttpResponse(builder.fullHttpResponse);
         setRequest(builder.request);
         setResponse(builder.response);
+        setHttps(builder.https);
     }
+
 
     public int getId() {
         return id;
@@ -66,6 +69,13 @@ public class ResponseInfo {
         this.response = response;
     }
 
+    public boolean isHttps() {
+        return https;
+    }
+
+    public void setHttps(boolean https) {
+        this.https = https;
+    }
 
     public static final class Builder {
         private int id;
@@ -73,6 +83,7 @@ public class ResponseInfo {
         private FullHttpResponse fullHttpResponse;
         private Object request;
         private Object response;
+        private boolean https;
 
         public Builder() {
         }
@@ -99,6 +110,11 @@ public class ResponseInfo {
 
         public Builder response(Object val) {
             response = val;
+            return this;
+        }
+
+        public Builder https(boolean val) {
+            https = val;
             return this;
         }
 

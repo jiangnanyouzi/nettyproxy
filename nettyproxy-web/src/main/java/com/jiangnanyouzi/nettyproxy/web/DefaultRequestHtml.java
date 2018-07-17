@@ -4,6 +4,7 @@ import com.jiangnanyouzi.nettyproxy.config.ProxyConstant;
 import com.jiangnanyouzi.nettyproxy.config.WebProxyConstant;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class DefaultRequestHtml {
             content = content.replaceAll("\\{port\\}", String.valueOf(ProxyConstant.PORT));
         } catch (Exception e) {
             logger.error("get default request content error {}", e);
-            return "<span class='layui-badge layui-bg-orange'>this is error</span><pre class='layui-code'>" + e + "</pre>";
+            return "<span class='layui-badge layui-bg-orange'>this is error</span><pre class='layui-code'>" + ExceptionUtils.getStackTrace(e) + "</pre>";
         }
         return content;
     }
