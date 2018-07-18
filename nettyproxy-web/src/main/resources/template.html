@@ -189,6 +189,7 @@
                 var id = $(this).attr("data-id");
                 console.log(id);
                 addBlackRequest(id);
+                $(this).parents("tr").empty();
             });
             table.on("click", "span.editrequest", function () {
                 console.log("click.......");

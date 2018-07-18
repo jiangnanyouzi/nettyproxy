@@ -6,8 +6,6 @@ import com.jiangnanyouzi.nettyproxy.config.WebProxyConstant;
 import com.jiangnanyouzi.nettyproxy.utils.HttpRequestUtils;
 import com.jiangnanyouzi.nettyproxy.utils.HttpUtils;
 import com.jiangnanyouzi.nettyproxy.utils.ResponseUtil;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -96,6 +94,9 @@ public class ResponseHtml {
             List<String> idList = paramters.get("id[]");
             for (String s : idList) {
                 ResponseInfo responseInfo = WebProxyConstant.responseInfoMap.get(Integer.parseInt(s));
+                if (responseInfo == null) {
+                    continue;
+                }
                 releaseResponseInfo(responseInfo);
                 WebProxyConstant.responseInfoMap.remove(Integer.parseInt(s));
             }

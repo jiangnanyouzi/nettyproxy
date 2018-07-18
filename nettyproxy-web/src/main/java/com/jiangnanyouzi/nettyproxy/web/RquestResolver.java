@@ -7,7 +7,6 @@ import com.jiangnanyouzi.nettyproxy.utils.HttpUtils;
 import com.jiangnanyouzi.nettyproxy.utils.ResponseUtil;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.handler.codec.http.*;
-import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -145,7 +144,7 @@ public class RquestResolver {
         logger.info("edit request,id {}", id);
         ResponseInfo responseInfo = ResponseUtil.getCorrectResponseInfo(id);
         if (responseInfo == null || responseInfo.getFullHttpRequest() == null) {
-            return "<pre>error</pre>";
+            return "<pre>request not exists!!!!</pre>";
         }
         FullHttpRequest fullHttpRequest = responseInfo.getFullHttpRequest();
         fullHttpRequest.content().resetReaderIndex();
