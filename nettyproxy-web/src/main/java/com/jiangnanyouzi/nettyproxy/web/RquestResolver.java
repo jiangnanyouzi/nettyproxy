@@ -156,7 +156,7 @@ public class RquestResolver {
         //replace {requestHeader}....{/requestHeader} {body}....{/body} {https} {uri} {httpMethod}
         content = content.replaceAll("\\{requestHeader\\}(?s)(.*)\\{\\/requestHeader\\}", Matcher.quoteReplacement(headersHtml));
         content = content.replaceAll("\\{body\\}(?s)(.*)\\{\\/body\\}", bodyHtml);
-        content = content.replaceAll("\\{uri\\}", fullHttpRequest.uri());
+        content = content.replaceAll("\\{uri\\}", Matcher.quoteReplacement(fullHttpRequest.uri()));
         content = content.replaceAll("\\{https\\}", String.valueOf(responseInfo.isHttps()));
         content = content.replaceAll("\\{httpMethod\\}", fullHttpRequest.method().toString());
         return content;

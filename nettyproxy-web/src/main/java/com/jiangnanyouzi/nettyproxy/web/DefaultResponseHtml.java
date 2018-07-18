@@ -53,7 +53,7 @@ public class DefaultResponseHtml {
         content = replaceRequestTag(responseInfo, content);
         content = replaceResponse(responseInfo, content);
         content = content.replaceAll("\\{port\\}", String.valueOf(ProxyConstant.PORT));
-        content = content.replaceAll("\\{url\\}", getUrl(responseInfo.getFullHttpRequest()));
+        content = content.replaceAll("\\{url\\}", Matcher.quoteReplacement(getUrl(responseInfo.getFullHttpRequest())));
         return content;
     }
 
@@ -87,17 +87,17 @@ public class DefaultResponseHtml {
         if (match.find()) {
 
             if (responseInfo.getRequest() != null) {
-                return match.replaceAll((String) responseInfo.getRequest());
+                return match.replaceAll(Matcher.quoteReplacement((String) responseInfo.getRequest()));
             }
             String requestHtml = match.group(1);
             requestHtml = requestHtml.replaceAll("\\{httpMethod\\}", responseInfo.getFullHttpRequest().method().toString());
             Matcher paramterMatch = requestParamterPattern.matcher(requestHtml);
             if (paramterMatch.find()) {
                 String paramterHtml = paramterMatch.group(1);
-                requestHtml = paramterMatch.replaceAll(replaceRequestParamterTag(responseInfo, paramterHtml));
+                requestHtml = paramterMatch.replaceAll(Matcher.quoteReplacement(replaceRequestParamterTag(responseInfo, paramterHtml)));
             }
             responseInfo.setRequest(requestHtml);
-            content = match.replaceAll(requestHtml);
+            content = match.replaceAll(Matcher.quoteReplacement(requestHtml));
         }
         return content;
     }
@@ -127,8 +127,8 @@ public class DefaultResponseHtml {
                 if (valueList.size() > 1) {
                     value = valueList.toString();
                 }
-                String newHtml = foreachHtml.replaceAll("\\{name\\}", s);
-                newHtml = newHtml.replaceAll("\\{value\\}", value);
+                String newHtml = foreachHtml.replaceAll("\\{name\\}", Matcher.quoteReplacement(s));
+                newHtml = newHtml.replaceAll("\\{value\\}", Matcher.quoteReplacement(value));
                 row.append(newHtml);
             }
         }

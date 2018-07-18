@@ -141,7 +141,7 @@ public class ResponseHtml {
         WebProxyConstant.responseInfoMap.put(incrementid, newResponseInfo);
         String url = ResponseUtil.fixUrl(fullHttpRequest, clientRequestInfo.isHttps());
         return DefaultRequestHtml.foreachHtml.replaceAll("\\{id\\}", String.valueOf(incrementid))
-                .replaceAll("\\{url\\}", url);
+                .replaceAll("\\{url\\}", Matcher.quoteReplacement(url));
     }
 
     private void releaseResponseInfo(ResponseInfo responseInfo) {
