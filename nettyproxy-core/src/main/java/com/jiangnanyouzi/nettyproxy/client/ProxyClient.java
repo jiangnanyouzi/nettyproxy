@@ -12,6 +12,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +46,12 @@ public class ProxyClient {
 
     public void connectNewRemoteServer() {
 
+        if (clientRequestInfo.getChannelHandlerContext() != null &&
+                !clientRequestInfo.getChannelHandlerContext().channel().isOpen()) {
+            logger.info("channel is close, host {} port {}", clientRequestInfo.getHost(), clientRequestInfo.getPort());
+            return;
+        }
         logger.info("client to server,start...........");
-
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ProxyConstant.nioEventLoopGroup)
                 .channel(NioSocketChannel.class)
@@ -127,6 +132,7 @@ public class ProxyClient {
                 }
                 return;
             }
+            logger.error("error {}", ExceptionUtils.getStackTrace(future.cause()));
             logger.error("connect fail host {} port {}", clientRequestInfo.getHost(), clientRequestInfo.getPort());
             for (Object o : queue) {
                 ReferenceCountUtil.release(o);

@@ -106,6 +106,7 @@ public class WebRequestListener implements ClientListener {
             ctx.writeAndFlush(ResponseUtils.getHtmlHttpResponse(html));
             ctx.writeAndFlush(httpContent);
             ctx.close();
+            ReferenceCountUtil.release(requestInfo.getMsg());
             return false;
         }
 
