@@ -70,6 +70,10 @@ public abstract class CertificateUtils {
         X509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
                 x500Name, serial, notBefore, notAfter, x500Name, keyPair.getPublic());
         builder.addExtension(Extension.basicConstraints, false, new BasicConstraints(true));
+
+        //builder.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
+        //builder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(keyPair.getPublic()));
+
         ContentSigner signer = new JcaContentSignerBuilder(ProxyConstant.CA_SHA).setProvider("BC").build(keyPair.getPrivate());
         X509Certificate certificate = new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
         savePem(certificate.getEncoded(), ProxyConstant.CERT_FILE);
