@@ -2,7 +2,7 @@ package com.jiangnanyouzi.nettyproxy.web;
 
 import com.jiangnanyouzi.nettyproxy.config.ProxyConstant;
 import com.jiangnanyouzi.nettyproxy.config.WebProxyConstant;
-import io.netty.handler.codec.http.HttpHeaderNames;
+import com.jiangnanyouzi.nettyproxy.utils.ResponseUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -55,10 +55,7 @@ public class DefaultRequestHtml {
         StringBuilder stringBuilder = new StringBuilder();
         for (Integer key : WebProxyConstant.responseInfoMap.keySet()) {
             ResponseInfo responseInfo = WebProxyConstant.responseInfoMap.get(key);
-            String url = responseInfo.getFullHttpRequest().uri();
-            if (url.startsWith("/")) {
-                url = "https://" + responseInfo.getFullHttpRequest().headers().get(HttpHeaderNames.HOST) + url;
-            }
+            String url= ResponseUtil.fixUrl(responseInfo.getFullHttpRequest(),responseInfo.isHttps());
             String newHtml = foreachHtml.replaceAll("\\{id\\}", String.valueOf(responseInfo.getId()))
                     .replaceAll("\\{url\\}", Matcher.quoteReplacement(url));
             stringBuilder.append(newHtml);

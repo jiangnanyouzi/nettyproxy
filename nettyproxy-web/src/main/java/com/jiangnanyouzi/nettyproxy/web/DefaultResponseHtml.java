@@ -53,7 +53,7 @@ public class DefaultResponseHtml {
         content = replaceRequestTag(responseInfo, content);
         content = replaceResponse(responseInfo, content);
         content = content.replaceAll("\\{port\\}", String.valueOf(ProxyConstant.PORT));
-        content = content.replaceAll("\\{url\\}", Matcher.quoteReplacement(getUrl(responseInfo.getFullHttpRequest())));
+        content = content.replaceAll("\\{url\\}", Matcher.quoteReplacement(ResponseUtil.fixUrl(responseInfo.getFullHttpRequest(), responseInfo.isHttps())));
         return content;
     }
 
@@ -147,15 +147,6 @@ public class DefaultResponseHtml {
             builder.append(newHtml);
         }
         return builder.toString();
-    }
-
-
-    public String getUrl(FullHttpRequest fullHttpRequest) {
-        String url = fullHttpRequest.uri();
-        if (url.startsWith("/")) {
-            url = "https://" + fullHttpRequest.headers().get(HttpHeaderNames.HOST) + url;
-        }
-        return url;
     }
 
 

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -60,6 +62,36 @@ public class HttpUtils {
         return IOUtils.toString(unGzip(data), charset);
 
     }
+
+    public static String relativePath(String absolutePath) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        try {
+            URL url = new URL(absolutePath);
+            if (StringUtils.isNoneBlank(url.getPath())) {
+                stringBuilder.append(url.getPath());
+            }
+            if (StringUtils.isNoneBlank(url.getQuery())) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append("?");
+                }
+                stringBuilder.append(url.getQuery());
+            }
+            if (StringUtils.isNoneBlank(url.getRef())) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append("#");
+                }
+                stringBuilder.append(url.getRef());
+            }
+            if (stringBuilder.length() == 0) {
+                stringBuilder.append("/");
+            }
+            return stringBuilder.toString();
+        } catch (MalformedURLException e) {
+            return absolutePath;
+        }
+    }
+
 
 
 }
