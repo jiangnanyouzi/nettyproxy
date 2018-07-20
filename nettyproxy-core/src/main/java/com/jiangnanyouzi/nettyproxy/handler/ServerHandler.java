@@ -3,7 +3,7 @@ package com.jiangnanyouzi.nettyproxy.handler;
 import com.jiangnanyouzi.nettyproxy.client.ClientRequestInfo;
 import com.jiangnanyouzi.nettyproxy.client.ProxyClient;
 import com.jiangnanyouzi.nettyproxy.config.ProxyConstant;
-import com.jiangnanyouzi.nettyproxy.utils.CertUtils;
+import com.jiangnanyouzi.nettyproxy.utils.CertificateUtils;
 import com.jiangnanyouzi.nettyproxy.utils.HttpUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -71,12 +71,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        logger.debug("================================================================");
-        logger.debug("msg instanceof FullHttpRequest {}", msg instanceof FullHttpRequest);
-        logger.debug("msg instanceof HttpRequest {}", msg instanceof HttpRequest);
-        logger.debug("msg instanceof HttpContent {}", msg instanceof HttpContent);
-        logger.debug("msg instanceof LastHttpContent {}", msg instanceof LastHttpContent);
-        logger.debug("================================================================");
 
         if (msg instanceof FullHttpRequest) {
 
@@ -96,7 +90,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             logger.info("HttpMethod {} Host {} port {}", request.method(), host, port);
 
             if (HttpMethod.CONNECT == request.method()) {
-                sendOKResponse(ctx);
+                sendSuccessResponse(ctx);
                 ReferenceCountUtil.release(msg);
                 return;
             }
@@ -132,7 +126,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         //proxyClient.toServer(new ClientRequestInfo.Builder().channelHandlerContext(ctx).host(host).port(port).https(true).msg(msg).build());
     }
 
-    private void sendOKResponse(ChannelHandlerContext ctx) {
+    private void sendSuccessResponse(ChannelHandlerContext ctx) {
         HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, SUCCESS);
         ctx.writeAndFlush(response);
         ctx.pipeline().remove("httpServerCodec");
@@ -142,14 +136,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private void sslHandShake(ChannelHandlerContext ctx, Object msg) throws SSLException {
 
+
+        X509Certificate x509Certificate = CertificateUtils.generateChildX509Certificate(sources, keyPair.getPublic(), this.host);
+
         logger.debug("===========================");
         logger.debug("SSL Hand Shake,start.......");
         logger.debug("===========================");
-
-        X509Certificate x509Certificate = CertUtils.genCert(sources, keyPair.getPublic(), this.host);
-
-        logger.debug("cert \n{}", CertUtils.convertToString(sources));
-        logger.debug("cert \n{}", CertUtils.convertToString(x509Certificate));
+        logger.debug("cert \n{}", CertificateUtils.convertToString(sources));
+        logger.debug("cert \n{}", CertificateUtils.convertToString(x509Certificate));
 
         SslContext sslCtx = SslContextBuilder.forServer(keyPair.getPrivate(), x509Certificate).build();
         ctx.pipeline().addFirst("httpCodec", new HttpServerCodec());

@@ -25,7 +25,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-public class CertUtilsTest {
+public class CertificateUtilsTest {
 
     @Test
     public void saveX509Certificate() throws Exception {
@@ -43,8 +43,6 @@ public class CertUtilsTest {
             ProxyConstant.CA_OU = "netty";
             //xx认证中心
             ProxyConstant.CA_CN = "proxy";
-            //保存证书目录
-            ProxyConstant.PATH="你的目录"
        */
 
         CertificateUtils.saveX509Certificate();
@@ -54,7 +52,8 @@ public class CertUtilsTest {
     @Test
     public void load() throws Exception {
 
-        X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new FileInputStream(new File(ProxyConstant.CERT_FILE.toURI())));
+        X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").
+                generateCertificate(new FileInputStream(new File(ProxyConstant.CERT_FILE.toURI())));
     }
 
 
@@ -65,12 +64,12 @@ public class CertUtilsTest {
         unencrypted = unencrypted.replace("-----BEGIN PRIVATE KEY-----", "");
         unencrypted = unencrypted.replace("-----END PRIVATE KEY-----", "");
         byte[] encoded = Base64.decode(unencrypted);
-        CertUtils.loadPrivateKey(encoded);
+        CertificateUtils.loadPrivateKey(encoded);
 
     }
 
     @Test
-    public void genCert() throws Exception {
+    public void generateX509Certificate() throws Exception {
 
         Security.addProvider(new BouncyCastleProvider());
         KeyPairGenerator caKeyPairGen = KeyPairGenerator.getInstance("RSA", "BC");
@@ -78,9 +77,9 @@ public class CertUtilsTest {
         PublicKey publicKey = caKeyPairGen.generateKeyPair().getPublic();
 
         String host = "www.baidu.com";
-        X509Certificate sources = CertUtils.load();
+        X509Certificate sources = CertificateUtils.load();
 
-        X509Certificate target = CertUtils.genCert(sources, publicKey, host);
+        X509Certificate target = CertificateUtils.generateChildX509Certificate(sources, publicKey, host);
 
         StringBuilder sb = new StringBuilder();
         sb.append("-----BEGIN CERTIFICATE-----\n");

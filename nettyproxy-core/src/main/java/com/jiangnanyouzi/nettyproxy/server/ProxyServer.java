@@ -3,7 +3,7 @@ package com.jiangnanyouzi.nettyproxy.server;
 import com.jiangnanyouzi.nettyproxy.config.ProxyConstant;
 import com.jiangnanyouzi.nettyproxy.handler.ServerHandler;
 import com.jiangnanyouzi.nettyproxy.listener.ClientListener;
-import com.jiangnanyouzi.nettyproxy.utils.CertUtils;
+import com.jiangnanyouzi.nettyproxy.utils.CertificateUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -57,10 +57,10 @@ public class ProxyServer {
     private void startProxy() throws Exception {
 
         Security.addProvider(new BouncyCastleProvider());
-        KeyPairGenerator caKeyPairGen = KeyPairGenerator.getInstance("RSA", "BC");
-        caKeyPairGen.initialize(2048, new SecureRandom());
-        KeyPair keyPair = caKeyPairGen.generateKeyPair();
-        X509Certificate sources = CertUtils.load();
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
+        keyPairGenerator.initialize(2048, new SecureRandom());
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        X509Certificate sources = CertificateUtils.load();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
