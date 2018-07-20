@@ -101,7 +101,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-
+            request.setUri(HttpUtils.relativePath(request.uri()));
             proxyClient.toServer(new ClientRequestInfo.Builder().channelHandlerContext(ctx).host(host).port(port).https(false).msg(msg).build());
 
             return;
