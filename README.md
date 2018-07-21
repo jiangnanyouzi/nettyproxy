@@ -3,7 +3,7 @@
 <pre>
     1.生成证书
     <blockqute>
-        a.运行 CertUtilsTest.saveX509Certificate();
+        a.运行 CertificateUtils.saveX509Certificate();
         b.也可以自己定制,了解这个该方法即可.
         c.resources目录也有生成好的,可以直接安装
     </blockqute>
