@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -192,9 +193,17 @@ public class RquestResolver {
 
         StringBuilder stringBuilder = new StringBuilder();
         List<Field> fieldList = FieldUtils.getAllFieldsList(HttpHeaderNames.class);
+        List<String> fieldNameList = new ArrayList<>();
         for (Field field : fieldList) {
+            fieldNameList.add(field.get(field.getName()).toString());
+        }
 
-            String value = field.get(field.getName()).toString();
+        if (fieldNameList.indexOf(header) == -1) {
+            fieldNameList.add(header);
+        }
+
+        for (String value : fieldNameList) {
+
             String newHtml = optionHtml.replaceAll("\\{value\\}", ResponseUtil.toUpperCase(value));
             newHtml = newHtml.replaceAll("\\{name\\}", ResponseUtil.toUpperCase(value));
             if (header.equalsIgnoreCase(value)) {
@@ -213,7 +222,7 @@ public class RquestResolver {
 
         StringBuilder builder = new StringBuilder();
         for (String s : httpHeaders.names()) {
-            String newHtml = requestHeaderContent.replaceAll("\\{value\\}", httpHeaders.get(s));
+            String newHtml = requestHeaderContent.replaceAll("\\{value\\}", StringEscapeUtils.escapeHtml4(httpHeaders.get(s)));
             newHtml = newHtml.replaceAll("\\{foreach\\}(?s)(.*)\\{\\/foreach\\}", Matcher.quoteReplacement(defaultSelectHtml(s, optionContent)));
             builder.append(newHtml);
         }
