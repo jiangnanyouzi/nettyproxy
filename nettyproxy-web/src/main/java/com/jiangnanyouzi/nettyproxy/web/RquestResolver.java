@@ -229,7 +229,7 @@ public class RquestResolver {
         return builder.toString();
     }
 
-    public String replaceBodyTag(String content) throws IllegalAccessException {
+    public String replaceBodyTag(String content) {
 
         if (content.length() <= 0) {
             return "request content is blank";

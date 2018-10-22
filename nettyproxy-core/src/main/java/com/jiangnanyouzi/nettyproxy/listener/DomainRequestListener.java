@@ -82,16 +82,16 @@ public class DomainRequestListener extends AbstractClientListener {
         if (HttpHeaderValues.GZIP.toString().equalsIgnoreCase(fullHttpResponse.headers().get(HttpHeaderNames.CONTENT_ENCODING))) {
             try {
                 logger.info("content \n{}", HttpUtils.convertGzipStreamToString(bytes, charset));
-            } catch (IOException ignored) {
-
+            } catch (IOException e) {
+                logger.warn("{}", e);
             }
             return;
         }
 
         try {
             logger.info("content \n{}", IOUtils.toString(bytes, charset));
-        } catch (IOException ignored) {
-
+        } catch (IOException e) {
+            logger.warn("{}", e);
         }
     }
 }
