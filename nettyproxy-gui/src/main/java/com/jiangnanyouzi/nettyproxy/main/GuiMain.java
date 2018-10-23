@@ -9,8 +9,26 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 
 public class GuiMain extends Application {
+
+    private static Logger logger = LoggerFactory.getLogger(GuiMain.class);
+
+    static {
+        try {
+            System.setProperty("file.encoding", "UTF-8");
+            Field charset = Charset.class.getDeclaredField("defaultCharset");
+            charset.setAccessible(true);
+            charset.set(null, null);
+        } catch (Exception e) {
+            logger.error("set charset error {}", e);
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -26,14 +44,12 @@ public class GuiMain extends Application {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProxyServer.create().clientListener(new WebRequestListener()).start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        new Thread(() -> {
+            try {
+                ProxyServer.create().clientListener(new WebRequestListener()).start();
+            } catch (Exception e) {
+                logger.error("proxy server not start {}", e);
+                throw new RuntimeException(e);
             }
         }).start();
 
