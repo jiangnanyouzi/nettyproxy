@@ -16,7 +16,7 @@ public class ServerMain {
     public static void main(String[] args) throws Exception {
 
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
-        new ProxyServer().clientListener(new DomainRequestListener(".*baidu.com.*")).start();
+        ProxyServer.create().clientListener(new DomainRequestListener(".*baidu.com.*")).start();
 
     }
 

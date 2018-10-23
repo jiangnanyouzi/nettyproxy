@@ -54,6 +54,9 @@ public class DefaultResponseHtml {
         content = replaceResponse(responseInfo, content);
         content = content.replaceAll("\\{port\\}", String.valueOf(ProxyConstant.PORT));
         content = content.replaceAll("\\{url\\}", Matcher.quoteReplacement(ResponseUtil.fixUrl(responseInfo.getFullHttpRequest(), responseInfo.isHttps())));
+        content = content.replaceAll("\\{httpMethod\\}", responseInfo.getFullHttpRequest().method().toString());
+        String statusCode = responseInfo.getFullHttpResponse() == null ? "-" : String.valueOf(responseInfo.getFullHttpResponse().status().code());
+        content = content.replaceAll("\\{statusCode\\}", statusCode);
         return content;
     }
 
@@ -71,7 +74,7 @@ public class DefaultResponseHtml {
             }
         }
         try {
-            content = content.replaceFirst("\\{responseTxt\\}", Matcher.quoteReplacement(getResponseTxt(responseInfo)));
+            content = content.replaceAll("\\{responseTxt\\}", Matcher.quoteReplacement(getResponseTxt(responseInfo)));
         } catch (IOException e) {
             logger.error("getResponseTxt error {}", e);
         }
@@ -90,7 +93,6 @@ public class DefaultResponseHtml {
                 return match.replaceAll(Matcher.quoteReplacement((String) responseInfo.getRequest()));
             }
             String requestHtml = match.group(1);
-            requestHtml = requestHtml.replaceAll("\\{httpMethod\\}", responseInfo.getFullHttpRequest().method().toString());
             Matcher paramterMatch = requestParamterPattern.matcher(requestHtml);
             if (paramterMatch.find()) {
                 String paramterHtml = paramterMatch.group(1);

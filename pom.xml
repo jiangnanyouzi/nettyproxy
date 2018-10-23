@@ -12,6 +12,7 @@
     <modules>
         <module>nettyproxy-core</module>
         <module>nettyproxy-web</module>
+        <module>nettyproxy-gui</module>
     </modules>
 
     <name>nettyproxy</name>

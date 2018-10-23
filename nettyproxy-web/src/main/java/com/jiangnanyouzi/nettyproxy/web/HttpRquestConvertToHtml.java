@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,14 @@ import static com.jiangnanyouzi.nettyproxy.web.RquestResolver.POST_REGEX;
 /**
  * Created by jiangnan on 2018/7/9.
  */
-public class ResponseHtml {
+public class HttpRquestConvertToHtml {
 
     public static final String RETRY_REGEX = ".*/retry/request/(\\d+)";
     public static final String BLACK_REGEX = ".*/black/request/(\\d+)";
     public static final String DELETE_REGEX = ".*/delete/request.*";
+    public static final String POST_CONSTANT_REGEX = ".*/post/constant.*";
+    public static final String SUCCESS_JSON = "{\"status\":1}";
+    public static final String FAIL_JSON = "{\"status\":0}";
 
     private static Pattern blackPattern = Pattern.compile(BLACK_REGEX);
 
@@ -50,6 +54,10 @@ public class ResponseHtml {
             return addBlackRequest(request);
         }
 
+        if (Pattern.matches(POST_CONSTANT_REGEX, request.uri())) {
+            return updateConstant(request);
+        }
+
         if (Pattern.matches(Edit_REGEX, request.uri()) || Pattern.matches(POST_REGEX, request.uri())) {
             return new RquestResolver(request).resolve();
         }
@@ -66,6 +74,21 @@ public class ResponseHtml {
         return new DefaultRequestHtml().buildHtml();
     }
 
+    private String updateConstant(FullHttpRequest request) {
+        logger.info("update Web Proxy Constant..........");
+        Map<String, List<String>> paramters = HttpRequestUtils.getRequestParameters(request.uri());
+        logger.info("paramters {}", paramters);
+        if (!paramters.containsKey("domains[]") &&
+                !paramters.containsKey("onSave")) return FAIL_JSON;
+        if (paramters.containsKey("domains[]")) {
+            String domain = paramters.get("domains").get(0);
+            if (StringUtils.isBlank(domain)) return FAIL_JSON;
+            WebProxyConstant.domains = StringUtils.split(domain, ",");
+        }
+        if (paramters.containsKey("onSave")) WebProxyConstant.onSave = Boolean.valueOf(paramters.get("onSave").get(0));
+        return SUCCESS_JSON;
+    }
+
     private String addBlackRequest(FullHttpRequest request) {
         logger.info("add Black Request..........");
         Matcher matcher = blackPattern.matcher(request.uri());
@@ -74,16 +97,16 @@ public class ResponseHtml {
             logger.info("add Black Request ,id {}", id);
             ResponseInfo responseInfo = ResponseUtil.getCorrectResponseInfo(id);
             if (responseInfo == null || responseInfo.getFullHttpRequest() == null) {
-                return "{\"status\":0}";
+                return FAIL_JSON;
             }
             String hostTxt = responseInfo.getFullHttpRequest().headers().get(HttpHeaderNames.HOST);
             String host = HttpUtils.getHost(hostTxt);
             WebProxyConstant.blackDomains.add(".*" + host + ".*");
             WebProxyConstant.responseInfoMap.remove(id);
             releaseResponseInfo(responseInfo);
-            return "{\"status\":1}";
+            return SUCCESS_JSON;
         }
-        return "{\"status\":0}";
+        return FAIL_JSON;
     }
 
 
@@ -101,7 +124,7 @@ public class ResponseHtml {
                 WebProxyConstant.responseInfoMap.remove(Integer.parseInt(s));
             }
         }
-        return "{\"status\":1}";
+        return SUCCESS_JSON;
     }
 
 
@@ -139,9 +162,7 @@ public class ResponseHtml {
         extras.put(String.valueOf(incrementid), newResponseInfo);
         clientRequestInfo.setExtras(extras);
         WebProxyConstant.responseInfoMap.put(incrementid, newResponseInfo);
-        String url = ResponseUtil.fixUrl(fullHttpRequest, clientRequestInfo.isHttps());
-        return DefaultRequestHtml.foreachHtml.replaceAll("\\{id\\}", String.valueOf(incrementid))
-                .replaceAll("\\{url\\}", Matcher.quoteReplacement(url));
+        return new DefaultRequestHtml().responseInfoConvertToHtml(newResponseInfo);
     }
 
     private void releaseResponseInfo(ResponseInfo responseInfo) {

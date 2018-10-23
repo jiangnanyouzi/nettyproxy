@@ -111,7 +111,7 @@ public class RquestResolver {
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.setClientRequestInfo(clientRequestInfo);
         proxyClient.connectNewRemoteServer();
-        return new ResponseHtml().saveAndReturnHtml(fullHttpRequest, clientRequestInfo);
+        return new HttpRquestConvertToHtml().saveAndReturnHtml(fullHttpRequest, clientRequestInfo);
     }
 
     private FullHttpRequest generateHttpRequest(Map<String, List<String>> paramters) {

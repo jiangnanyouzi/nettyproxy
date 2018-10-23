@@ -4,7 +4,7 @@ import com.jiangnanyouzi.nettyproxy.client.ClientRequestInfo;
 import com.jiangnanyouzi.nettyproxy.config.ProxyConstant;
 import com.jiangnanyouzi.nettyproxy.config.WebProxyConstant;
 import com.jiangnanyouzi.nettyproxy.utils.ResponseUtils;
-import com.jiangnanyouzi.nettyproxy.web.ResponseHtml;
+import com.jiangnanyouzi.nettyproxy.web.HttpRquestConvertToHtml;
 import com.jiangnanyouzi.nettyproxy.web.ResponseInfo;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -28,7 +28,7 @@ public class WebRequestListener implements ClientListener {
 
 
     public WebRequestListener() {
-        this(".*");
+        this(WebProxyConstant.domains);
     }
 
     public WebRequestListener(String... domains) {
@@ -44,6 +44,8 @@ public class WebRequestListener implements ClientListener {
 
 
     public boolean shouldReservedHttpRequest(ClientRequestInfo requestInfo) {
+
+        if (!WebProxyConstant.onSave) return false;
 
         String host = ((FullHttpRequest) requestInfo.getMsg()).headers().get(HttpHeaderNames.HOST);
         for (String domain : WebProxyConstant.blackDomains) {
@@ -83,7 +85,7 @@ public class WebRequestListener implements ClientListener {
 
     @Override
     public void process(ClientRequestInfo requestInfo, FullHttpResponse fullHttpResponse) {
-
+        if (!WebProxyConstant.onSave) return;
         for (String s : requestInfo.getExtras().keySet()) {
             WebProxyConstant.responseInfoMap
                     .get(Integer.valueOf(s))
@@ -99,7 +101,7 @@ public class WebRequestListener implements ClientListener {
         if (("localhost".equalsIgnoreCase(requestInfo.getHost()) ||
                 "127.0.0.1".equals(requestInfo.getHost())) &&
                 requestInfo.getPort() == ProxyConstant.PORT) {
-            String html = new ResponseHtml().buildHtml((FullHttpRequest) requestInfo.getMsg());
+            String html = new HttpRquestConvertToHtml().buildHtml((FullHttpRequest) requestInfo.getMsg());
             HttpContent httpContent = new DefaultLastHttpContent();
             httpContent.content().writeBytes(html.getBytes());
             ChannelHandlerContext ctx = requestInfo.getChannelHandlerContext();

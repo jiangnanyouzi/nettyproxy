@@ -20,4 +20,8 @@ public abstract class WebProxyConstant {
 
     public static Set<String> blackDomains = new TreeSet<>();
 
+    public static boolean onSave = true;
+
+    public static String[] domains = new String[]{".*"};
+
 }

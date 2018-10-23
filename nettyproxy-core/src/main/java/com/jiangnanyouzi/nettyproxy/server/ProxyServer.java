@@ -32,8 +32,14 @@ import java.util.List;
  **/
 public class ProxyServer {
 
-    private  Logger logger = LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
+    private ProxyServer() {
+    }
+
+    public static ProxyServer create() {
+        return new ProxyServer();
+    }
 
     public ProxyServer clientListener(ClientListener... clientListener) {
         if (clientListener.length > 0) {

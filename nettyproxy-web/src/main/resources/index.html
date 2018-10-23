@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>layout 后台大布局 - Layui</title>
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="http://cdn.90so.net/layui/2.4.3/layui.js"></script>
+    <link rel="stylesheet" href="http://cdn.90so.net/layui/2.4.3/css/layui.css" media="all">
+</head>
+<style>
+    .layui-input-search {
+
+        display: inline-block;
+        vertical-align: middle;
+        height: 32px;
+        border: none;
+        cursor: text;
+
+    }
+
+    .layui-header .layui-nav-item {
+        margin-right: 10px;
+    }
+</style>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">Netty Proxy Web</div>
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item">
+                <form class="layui-form" action="" lay-filter="formTest">
+                    <div class="layui-row layui-col-space5">
+                        <div class="layui-col-md3">
+                            <div class="layui-row grid-demo">
+                                <div class="layui-col-md3">
+                                    <input type="checkbox" name="onSave" lay-skin="switch" lay-text="ON|OFF"
+                                           lay-filter="onSave">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </li>
+            <li class="layui-nav-item">
+                <input type="text" id="domains" placeholder="正则过滤" autocomplete="off"
+                       class="layui-input layui-input-search" value="{domains}">
+            </li>
+            <li class="layui-nav-item">
+                <button id="submit" class="layui-btn layui-btn-sm layui-btn-radius">提交</button>
+            </li>
+            <li class="layui-nav-item">
+                <button id="retry" class="layui-btn layui-btn-sm layui-btn-radius">重发</button>
+            </li>
+            <li class="layui-nav-item">
+                <button id="blacklist" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-normal">拉黑</button>
+            </li>
+            <li class="layui-nav-item">
+                <button id="editrequest" class="layui-btn layui-btn-sm layui-btn-radius  layui-btn-warm">编辑</button>
+            </li>
+            <li class="layui-nav-item">
+                <button id="delete" class="layui-btn layui-btn-sm layui-btn-radius layui-btn-danger">
+                    删除
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item"><a href="#">列表</a></li>
+                <li class="layui-nav-item"><a href="#">证书</a></li>
+                <li class="layui-nav-item"><a href="#">关于</a></li>
+                <li class="layui-nav-item"><a href="http://127.0.0.1:{port}/">刷新</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+
+        <div class='container-fluid'>
+            <div class="row">
+                <div class="col-md-12" style="overflow-y:auto; overflow-x:auto; height:950px;">
+                    <table class="layui-table layui-form" lay-filter="proxyList">
+                        <colgroup>
+                            <col width="20">
+                            <col width="50">
+                            <col width="50">
+                            <col width="100">
+                            <col maxWidth="800">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th><input class="check_all" id="check_all" type="checkbox" lay-skin="primary"
+                                       lay-filter="allChoose"/></th>
+                            <th>Method</th>
+                            <th>Code</th>
+                            <th>Host</th>
+                            <th>Path</th>
+                        </tr>
+                        </thead>
+                        <tbody id="requestlist">
+                        {foreach}
+                        <tr id='request_{id}' data-id='{id}'>
+                            <td><input type="checkbox" name="id[]" value="{id}" lay-skin="primary"/></td>
+                            <td  class="btnrequest">{httpMethod}</td>
+                            <td  class="btnrequest">{statusCode}</td>
+                            <td  class="btnrequest">{host}</td>
+                            <td  class="btnrequest" style='word-break:break-all'>{path}</td>
+                        </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="http://cdn.90so.net/layui/2.4.3/layui.js" charset="utf-8"></script>
+<script>
+    $(function () {
+        var form;
+        var element;
+        var layer;
+        var table;
+        var width = ($(window).width() * 0.50);
+        var height = ($(window).height() * 0.60);
+        layui.use(['element', 'layer', 'form', 'code', 'table'], function () {
+            layui.code({
+                encode: true
+            });
+            element = layui.element;
+            layer = layui.layer;
+            form = layui.form;
+            table = layui.table;
+            form.on('checkbox(allChoose)', function (data) {
+                var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+                child.each(function (index, item) {
+                    item.checked = data.elem.checked;
+                });
+                form.render('checkbox');
+            });
+            form.on('switch(onSave)', function (data) {
+                let onSave = data.elem.checked;
+                var url = 'http://127.0.0.1:{port}/post/constant?onSave=' + onSave;
+                $.ajax(
+                    {
+                        url: url,
+                        type: 'get',
+                        async: false,
+                        dataType: "json",
+                        success: function (ret) {
+                            if (ret.status == 1) {
+                                layer.msg('操作成功');
+                            } else {
+                                layer.msg('操作失败');
+                            }
+                        }
+                    });
+            });
+            form.val("formTest", {"onSave": {onSave}})
+
+        });
+
+        function getRequestContent(id) {
+            var ret = '';
+            var url = 'http://127.0.0.1:{port}/get/request/' + id;
+            $.ajax(
+                {
+                    url: url,
+                    type: 'get',
+                    async: false,
+                    dataType: "html",
+                    success: function (dataval) {
+                        ret = dataval;
+                        layer.closeAll();
+                        layer.open({
+                            type: 1,
+                            area: width + "px",
+                            // scrollbar: true,//显示滚动条
+                            shade: 0,
+                            offset: 'rt',
+                            title: "右下角可以拉伸",
+                            content: ret,
+                        });
+                        element.render('collapse');
+                    }
+                });
+            return ret;
+        };
+
+        function retryRequest(id) {
+            var url = 'http://127.0.0.1:{port}/retry/request/' + id;
+            $.ajax(
+                {
+                    url: url,
+                    type: 'get',
+                    async: false,
+                    dataType: "html",
+                    success: function (ret) {
+                        response = ret;
+                        if (ret == "error") {
+                            layer.msg('操作失败');
+                            return;
+                        }
+                        $('#requestlist').append(ret);
+                        layer.msg('操作成功');
+                        form.render('checkbox');
+                    }
+                });
+        };
+
+        function addBlackRequest(id) {
+            var url = 'http://127.0.0.1:{port}/black/request/' + id;
+            $.ajax(
+                {
+                    url: url,
+                    type: 'get',
+                    async: false,
+                    dataType: "json",
+                    success: function (ret) {
+                        if (ret.status == 1) {
+                            layer.msg('操作成功');
+                        } else {
+                            layer.msg('操作失败');
+                        }
+
+                    }
+                });
+        };
+
+        function getchecked() {
+            var allVals = [];
+            $("input:checkbox:checked").each(function () {
+                var id = $(this).val();
+                if (id > 0) {
+                    allVals.push(id);
+                }
+            });
+            return allVals;
+        }
+
+        $("tbody").on("click", ".btnrequest", function () {
+            console.log("click.......");
+            var id = $(this).parent("tr").attr("data-id");
+            console.log(id);
+            var ret = getRequestContent(id);
+            console.log(ret);
+            $('tr').css('background-color', "");
+            $("tr input[type='checkbox']").prop("checked", false);
+            $(this).parent("tr").css('background-color', '#5fb878');
+            $(this).parent("tr").find("input[type='checkbox']").prop("checked", true);
+            form.render('checkbox');
+            // layer.msg('请求成功');
+        });
+
+        $('#check_all').click(function () {
+            var cks = $('input:checkbox');
+            for (var i = 0; i < cks.length; i++) {
+                cks.get(i).checked = !cks.get(i).checked;
+            }
+        });
+        $('#delete').click(function () {
+            var allVals = [];
+            $("input:checkbox:checked").each(function () {
+                var id = $(this).val();
+                $('#request_' + id).remove();
+                if (id > 0) {
+                    allVals.push(id);
+                }
+            });
+            var url = 'http://127.0.0.1:{port}/delete/request';
+            $.ajax(
+                {
+                    url: url,
+                    type: 'post',
+                    data: {id: allVals},
+                    dataType: "json",
+                    success: function (ret) {
+                        layer.msg('删除成功');
+                    }
+                });
+        });
+        $('#submit').click(function () {
+            var domains = $("#domains").val();
+            var url = 'http://127.0.0.1:{port}/post/constant?domains=' + domains;
+            $.ajax(
+                {
+                    url: url,
+                    type: 'get',
+                    dataType: "json",
+                    success: function (ret) {
+                        layer.msg('更新成功');
+                    }
+                });
+        });
+
+        $('#retry').click(function () {
+            console.log("click.......");
+            let ids = getchecked();
+            if (ids.length !== 1) {
+                layer.msg('只允许选择一个');
+                return
+            }
+            let id = ids[0];
+            console.log(id);
+            retryRequest(id);
+        });
+        $('#blacklist').click(function () {
+            console.log("click.......");
+            let ids = getchecked();
+            if (ids.length !== 1) {
+                layer.msg('只允许选择一个');
+                return
+            }
+            let id = ids[0];
+            addBlackRequest(id);
+            $("#request_"+id).empty();
+        });
+        $('#editrequest').click(function () {
+            console.log("click.......");
+            let ids = getchecked();
+            if (ids.length !== 1) {
+                layer.msg('只允许选择一个');
+                return
+            }
+            let id = ids[0];
+            var url = 'http://127.0.0.1:{port}/edit/request/' + id;
+            $.ajax(
+                {
+                    url: url,
+                    type: 'get',
+                    dataType: "html",
+                    success: function (ret) {
+                        layer.closeAll();
+                        layer.open({
+                            type: 1,
+                            area: width + "px",
+                            btn: ['关闭','重发'],
+                            // scrollbar: true,//显示滚动条
+                            shade: 0,
+                            offset: 'rt',
+                            title: "右下角可以拉伸",
+                            content: ret,
+                            btn2: function(index, layero){
+                                var formData = $("#requestForm").serialize();
+                                //console.log(formData);
+                                var url = 'http://127.0.0.1:{port}/post/request/';
+                                $.ajax(
+                                    {
+                                        url: url,
+                                        type: 'post',
+                                        data: formData,
+                                        dataType: "json",
+                                        success: function (ret) {
+                                            if (ret.status == 1) {
+                                                $('#requestlist').append(ret.returnHtml);
+                                                layer.msg('操作成功');
+                                                form.render('checkbox');
+                                            } else {
+                                                layer.msg('操作失败');
+                                            }
+                                        }
+                                    });
+                            }
+                        });
+                        form.render('select');
+                    }
+                });
+        });
+
+        var contentObject = $("body");
+        contentObject.on("click", "span.removerow", function () {
+            console.log("click.......");
+            $(this).parents("tr").empty();
+            layer.msg('删除成功');
+        });
+        contentObject.on("click", "span.addrow", function () {
+            var row = $(this).parents("tr");
+            console.log(row);
+            $("#request").append(row.clone());
+            form.render('select');
+            layer.msg('删除成功');
+        });
+    });
+</script>
+</body>
+</html>
