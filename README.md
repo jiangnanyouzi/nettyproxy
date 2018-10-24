@@ -27,7 +27,10 @@
         ps.页面很一般啊
         
 </pre>
-![](http://bbs1.people.com.cn/postImages/Y0/99/46/90/87/1531579895943.png)
+![](http://bbs1.people.com.cn/postImages/Y0/A3/E1/9F/E6/1540347764710.png)
 <pre>
     代码量比较少,难免有bug.很多功能也没做.欢迎.............
+</pre>
+<pre>
+    windows已打包,[下载](https://github.com/jiangnanyouzi/nettyproxy/releases)
 </pre>
