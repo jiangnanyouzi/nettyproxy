@@ -32,5 +32,5 @@
     代码量比较少,难免有bug.很多功能也没做.欢迎.............
 </pre>
 <pre>
-    windows已打包,[下载](https://github.com/jiangnanyouzi/nettyproxy/releases)
+    windows已打包,<a href="https://github.com/jiangnanyouzi/nettyproxy/releases" target="_blank">下载</a>
 </pre>
