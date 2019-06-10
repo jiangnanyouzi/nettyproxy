@@ -3,10 +3,7 @@ package com.jiangnanyouzi.nettyproxy.utils;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.multipart.Attribute;
-import io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import io.netty.handler.codec.http.multipart.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,33 +33,26 @@ public abstract class HttpRequestUtils {
 
         Map<String, List<String>> paramters = new HashMap<>();
 
-        List<InterfaceHttpData> postList = new ArrayList<>();
-        if (HttpPostRequestDecoder.isMultipart(request)) {
-            HttpPostMultipartRequestDecoder multipartRequestDecoder = new HttpPostMultipartRequestDecoder(request);
-            postList = multipartRequestDecoder.getBodyHttpDatas();
-        } else if (request instanceof FullHttpRequest) {
-            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
-            postList = decoder.getBodyHttpDatas();
-        }
+        InterfaceHttpPostRequestDecoder decoder = HttpPostRequestDecoder.isMultipart(request) ?
+                new HttpPostMultipartRequestDecoder(request) : new HttpPostRequestDecoder(request);
+        List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
         for (InterfaceHttpData data : postList) {
             if (InterfaceHttpData.HttpDataType.Attribute == data.getHttpDataType()) {
                 Attribute attribute = (Attribute) data;
                 try {
                     if (paramters.containsKey(attribute.getName())) {
                         paramters.get(attribute.getName()).add(attribute.getValue());
-                    } else {
-                        List<String> valueList = new ArrayList<>();
-                        valueList.add(attribute.getValue());
-                        paramters.put(attribute.getName(), valueList);
+                        continue;
                     }
+                    List<String> valueList = new ArrayList<>();
+                    valueList.add(attribute.getValue());
+                    paramters.put(attribute.getName(), valueList);
                 } catch (IOException e) {
                     logger.error("transform error {}", e);
-                } finally {
-                    data.release();
                 }
             }
         }
-
+        decoder.destroy();
         return paramters;
     }
 }
